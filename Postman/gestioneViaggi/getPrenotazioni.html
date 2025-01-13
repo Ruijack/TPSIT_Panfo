@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerca pronotazioni</title>
+</head>
+<body>
+    <label>Prenota hotel</label>
+    <input type="text" id="inizialeCitta">
+    <button onclick="cercaCitta()">Cerca città</button>
+    <select id="selezioneCitta">
+        <option value="">Seleziona città</option>
+    </select>
+
+    <label>Cerca i dettagli del tuo Volo</label>
+    <input id="nomeVolo" type="text" placeholder="Inserisci il nome della prenotazione">
+    <button onclick="cercaVolo()"></button>
+    <label id="infoVolo"></label>
+
+    <label>Cerca i dettagli della tua stanza</label>
+    <input id="nomeHotel" type="text" placeholder="Inserisci il nome della prenotazione">
+    <button onclick="cercaHotel()"></button>
+    <label id="infoHotel"></label>
+
+    <script>
+
+        /**
+         * questo sito deve
+         * prendere una citta, numero stanze e nome per prenotare una stanza hotel 
+        */
+        "use strict"
+        let nome;
+        // async function cercaVolo(){
+        //     let elenco = document.getElementById("selezioneCitta");
+        //     let 
+        // }
+
+        async function cercaVolo(){
+            nome = document.getElementById("nomeVolo").value;
+            let richiestaBiglietto = await("http://10.1.0.52:8088/tickets?name=" + nome);
+            let idVolo = await JSON.parse(richiestaBiglietto).flightId;
+
+            let richiestaVolo = await ("http://10.1.0.52:8088/flights/" + idVolo);
+            let dettagliVolo = await JSON.parse(richiestaVolo);
+
+            let dettagli = document.getElementById("infoVolo");
+            dettagli.innerText = "da: "
+
+        }
+    </script>
+</body>
+</html>
