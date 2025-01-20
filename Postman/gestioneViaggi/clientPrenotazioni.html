@@ -12,7 +12,6 @@
     async function cercaCitta(citta, paese) {
         let risposta = await fetch("http://10.1.0.52:8088/cities?city=" );
     }
-
     /**
      * cerca tra le opzioni quella selezionata
      * ritorna il id della città selezionata
@@ -28,7 +27,6 @@
     }
 
     async function cercaPartenza(){
-        
         let contieneElenco = document.getElementById("cittaPartenza");
         //let elenco = contieneElenco.querySelectorAll("option");
 
@@ -36,7 +34,6 @@
         while (contieneElenco.lastChild.id != "promptPartenza") {
             contieneElenco.removeChild(contieneElenco.lastChild);
         }
-
         let cittaPartenza = document.getElementById("partenza").value;
 
         try {
@@ -54,7 +51,6 @@
             console.log(e.message);
         }
         
-
     }
 
     //cerca nel database dei voli quelli con partenza la città selezionata
@@ -70,24 +66,23 @@
         try {
             let rispostaVoli = await fetch("http://10.1.0.52:8088/flights?from=" + cittaPartenza);
             let fileJasonVoli = await rispostaVoli.json();
-            console.log(cittaPartenza)
-            for (let c = 0; c < fileJasonVoli.length; c++) {
-                let destinazione = fileJasonVoli[c].to;
 
-                let rispostaCitta = await fetch("http://10.1.0.52:8088/cities?city=" + destinazione);
-                let fileJasonCitta = await rispostaCitta.json();
-
-                let option = document.createElement("option");
-                option.textContent = fileJasonCitta[c].city + " - " + fileJasonCitta[c].country;
-                option.value = fileJasonCitta[c].id;
-                elencoDestinazioni.appendChild(option);
+            if(fileJasonVoli.length == 0){
+                let outPrenotazione = document.getElementById("risultatoPrenotazione");
+                outPrenotazione.innerText = "Sembra che non esistano voli che partono da questa città";
+            }else{
+                for (let c = 0; c < fileJasonVoli.length; c++) {
+                    let option = document.createElement("option");
+                    option.textContent = fileJasonVoli[c].to.city + " - " + fileJasonVoli[c].to.country;
+                    option.value = fileJasonVoli[c].to.id;
+                    elencoDestinazioni.appendChild(option);
+                }
             }
 
         } catch (e) {
             console.log(e.name);
             console.log(e.message);
         }
-
     }
 
     async function cercaDestinazione(){
@@ -100,7 +95,7 @@
         let cittaDestinazione = document.getElementById("destinazione").value;
 
         try {
-            let risposta = await fetch("http://10.1.0.52:8088/flights?from=" + cittaDestinazione);
+            let risposta = await fetch("http://10.1.0.52:8088/cities?city=" + cittaDestinazione);
             let fileJason = await risposta.json();
             for (let c = 0; c < fileJason.length; c++) {
             let option = document.createElement("option");
@@ -118,12 +113,43 @@
     //working progress
     async function prenotaVolo() {
         //cerca la città di partenza selezionata
+        let outPrenotazione = document.getElementById("risultatoPrenotazione");
+
         let listaPartenza = document.getElementById("cittaPartenza");
-        let partenza = cercaSelezionato(listaPartenza);
+        let idPartenza = cercaSelezionato(listaPartenza);
         
         //cerca la città di destinazione selezionata
         let listaDestinazione = document.getElementById("cittaDestinazione");
-        let destinazione = cercaSelezionato(listaDestinazione);
+        let idDestinazione = cercaSelezionato(listaDestinazione);
+
+        try {
+            let risposta = await fetch("http://10.1.0.52:8088/flights?from=" + idPartenza + "&to=" + idDestinazione);
+            let fileJason = await risposta.json();
+            if(fileJason.length == 0){
+                outPrenotazione.innerText = "Sembra che questo volo non esista";
+            }else{
+                console.log(fileJason)
+                let biglietto = {
+                    flightId : fileJason[0].id,
+                    name : document.getElementById("flightName").value,
+                    date : document.getElementById("dataVolo").value
+                };
+                let parametriRichiesta = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(biglietto)
+                };
+                let mandaBiglietto = await fetch("http://10.1.0.52:8088/tickets", parametriRichiesta);
+                outPrenotazione.innerText = "Perfetto! Il tuo biglietto è stato prenotato";
+            }
+            
+        } catch (e) {
+            console.log(e.name);
+            console.log(e.message);
+        }
+
     }
 
     //crea le opzioni del selector, con le città con le lettere, di input, presenti nel suo nome
@@ -156,7 +182,7 @@
         let listaHotel = document.getElementById("listaHotel");
 
         prenotazione.cityId = cercaSelezionato(listaHotel);
-        prenotazione.name = document.getElementById("reservationName").value;
+        prenotazione.name = document.getElementById("hotelName").value;
         prenotazione.from = document.getElementById("checkin-date").value;
         prenotazione.to = document.getElementById("checkout-date").value;
         prenotazione.guests = document.getElementById("numeroPersone").value;
@@ -211,13 +237,24 @@
                     <button onclick="cercaDestinazione()">cerca</button>
                     </div>
 
+                    <div id="blocchi">
                     <label for="cittaDestinazione">Scegli la tua destinazione</label>
                     <select id="cittaDestinazione">
                         <option id="promptDestinazione">seleziona una città</option>
                     </select>
+                    </div>
 
+                    <label for="flightName">Nome della prenotazione:</label>
+                    <input type="text" id="flightName"required>
+
+                    <div id="blocchi">
+                    <label for="dataVolo">Data per il volo:</label>
+                    <input type="date" id="dataVolo" name="dataVolo" required>
                     <button type="submit" onclick="prenotaVolo()">Prenota Volo</button>
-                    <label for="risultrato prenotazione" id="risultratoPrenotazione"></label>
+                    </div>
+
+                    
+                    <label for="risultato prenotazione" id="risultatoPrenotazione"></label>
 
             </div>
 
@@ -238,8 +275,8 @@
                     <input type="date" id="checkout-date" name="checkout-date" required>
                     </div>
 
-                    <label for="reservationName">Nome della prenotazione:</label>
-                    <input type="text" id="reservationName"required>
+                    <label for="hotelName">Nome della prenotazione:</label>
+                    <input type="text" id="hotelName"required>
 
                     <div id="blocchi">
                     <label for="numeroPersone">Numero di persone:</label>
