@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informazioni per il golf</title>
+</head>
+<script>
+    const server = "http://10.1.0.52:8180/golf/";
+    "use strict"
+    // async function getJson(cartella,[id],[giocatore]){
+    //     if(id){
+    //         let risposta = await fetch("http://10.1.0.52:8180/golf/"+ `${cartella}/${id}`);
+    //         let json = await risposta.json();
+    //     }
+    //     if(giocatore){
+    //         let risposta = await fetch("http://10.1.0.52:8180/golf/"+ `${cartella}/${id}`);
+    //         let json = await risposta.json();
+    //     }
+        
+    //     return json;
+    // }
+
+
+    async function mostraCampi() {
+        let listaCampi = document.getElementById("listaCampi");
+        let rispostaCampi = await fetch(server + "campi");
+        let jsonCampi = await rispostaCampi.json();
+        for(let c = 0;c < jsonCampi.length;c++){
+            let riga = document.createElement("tr");
+            let oggettoRiga = document.createElement("td");
+            oggettoRiga.innerText = jsonCampi[c].nome;
+            oggettoRiga.onclick = infoCampo(c);
+            riga.appendChild(oggettoRiga)
+            listaCampi.appendChild(riga);
+        }
+    }
+
+    async function infoCampo(riga) {
+        let listaCampi = document.getElementById("listaCampi");
+        let rispostaCampi = await fetch(server + "campi");
+        let jsonCampi = await rispostaCampi.json();
+        let buche = document.createElement("td");
+        buche.innerText = "Numero buche:" + jsonCampi[riga].numeroBuche;
+        let par = document.createElement("td");
+
+        let foto = document.createElement("td");
+
+
+    }
+
+
+
+
+    /**
+     * handicap + par = numero di colpi che quel giocatore dovrebbero finire quel campo
+     * handicap minore = questo giocatore è bravo, ci deve mettere meno colpi a finire il campo
+     * par = numero di colpi con cui si dovrebbe finire il campo
+     **/
+</script>
+
+<body onload="mostraCampi()">
+    <label for="listaCampi">I campi dove si terrano il World Golf Tournament</label>
+    <table id="listaCampi">
+
+    </table>
+</body>
+</html>
